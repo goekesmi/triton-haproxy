@@ -1,0 +1,77 @@
+{
+  "variables": {
+    "triton_url": "{{env `SDC_URL`}}",
+    "triton_account": "{{env `SDC_ACCOUNT`}}",
+    "triton_key_id": "{{env `SDC_KEY_ID`}}",
+    "version_suffix": "-{{timestamp}}"
+  },
+  "builders": [
+    {
+      "name": "triton",
+      "type": "triton",
+      "triton_url": "{{user `triton_url`}}",
+      "triton_account": "{{user `triton_account`}}",
+      "triton_key_id": "{{user `triton_key_id`}}",
+      "source_machine_name": "ib-haproxy-{{uuid}}",
+      "source_machine_package": "g4-highcpu-256M",
+      "source_machine_image_filter": {
+        "name": "base-64",
+        "most_recent": "true"
+      },
+      "ssh_username": "root",
+      "image_name": "haproxy",
+      "image_version": "1.8.7{{user `version_suffix`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "haproxy.files/haproxy-cert-zoneinit.sh",
+      "destination": "/var/zoneinit/includes/56-haproxy-cert-zoneinit.sh"
+    },
+    {
+      "type": "file",
+      "source": "haproxy.files/haproxy.cfg",
+      "destination": "/opt/local/etc/"
+    },
+    {
+      "type": "file",
+      "source": "haproxy.files/rsyslog.conf",
+      "destination": "/opt/local/etc/rsyslog.conf"
+    },
+    {
+      "type": "shell", "inline": [
+        "echo update pkgsrc; pkgin update ",
+        "echo installing make gcc; pkgin -y install gmake gcc49",
+        "echo installing git; pkgin -y install git",
+        "echo installing node; pkgin -y install nodejs",
+        "echo update node; npm i npm@latest -g",
+        "echo installing triton and manta; npm install -g --unsafe-perm triton manta"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "haproxy.files/manta-backup.sh",
+      "destination": "/opt/local/bin/manta-backup"
+    },
+    {
+      "type": "file",
+      "source": "haproxy.files/acme-get-cert.sh",
+      "destination": "/opt/local/bin/acme-get-cert"
+    },
+    {
+      "type": "shell", "inline": [
+ 	"mkdir /opt/local/etc/certs/",
+        "echo installing haproxy; pkgin -y install haproxy",
+        "echo enabling haproxy; svcadm enable haproxy",
+        "echo installing hatop; pkgin -y install py27-hatop",
+        "echo installing acme.sh; cd /root; curl https://get.acme.sh | sh"
+      ]
+    },
+    {
+      "type": "shell", "inline": [
+        "echo DONE" 
+      ]
+    }
+  ]
+}
