@@ -4,8 +4,8 @@ This is a file to build a zone using packer to give the basic tooling
 that I rely upon when using haproxy on Triton.
 
 The file haproxy is the packer build file that will establish a zone
-image.  It assumes you have an in place triton-cli environment variables
-and that the profile name is joyent. 
+image.  It assumes you have an in place [triton-cli](https://docs.joyent.com/public-cloud/api/triton-cli)
+environment variables and that the profile name is joyent. 
 
 Build with the command line:
 
